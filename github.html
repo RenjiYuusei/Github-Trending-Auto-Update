@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>GitHub Trending</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+		<style>
+			.language-color {
+				width: 12px;
+				height: 12px;
+				border-radius: 50%;
+				display: inline-block;
+			}
+
+			@keyframes pulse {
+				0%,
+				100% {
+					opacity: 1;
+				}
+				50% {
+					opacity: 0.5;
+				}
+			}
+
+			.loading i {
+				animation: pulse 1.5s ease-in-out infinite;
+			}
+
+			.filter-button:hover,
+			.language-button:hover {
+				transform: translateY(-1px);
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			}
+
+			.repo-card {
+				transition: all 0.3s ease;
+			}
+
+			.repo-card:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			}
+		</style>
+	</head>
+	<body class="bg-gray-50">
+		<div class="container mx-auto px-4 py-8 max-w-7xl">
+			<header class="text-center mb-8">
+				<h1 class="text-4xl font-bold text-gray-900 mb-2"><i class="fab fa-github mr-2"></i>GitHub Trending</h1>
+				<p class="text-gray-600 mb-4">Discover trending repositories on GitHub</p>
+				<div class="repo-count flex justify-center items-center space-x-2 text-gray-700">
+					<span>Display:</span>
+					<select id="repoCount" class="rounded-md border border-gray-300 px-3 py-1.5 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+						<option value="25">25 repositories</option>
+						<option value="50" selected>50 repositories</option>
+					</select>
+				</div>
+			</header>
+
+			<div class="flex flex-col items-center gap-4 mb-8">
+				<div class="flex flex-wrap justify-center gap-2">
+					<button class="filter-button active px-4 py-2 rounded-md transition-all duration-200"><i class="far fa-clock mr-1"></i>Today</button>
+					<button class="filter-button px-4 py-2 rounded-md transition-all duration-200"><i class="far fa-calendar mr-1"></i>This Week</button>
+					<button class="filter-button px-4 py-2 rounded-md transition-all duration-200"><i class="far fa-calendar-alt mr-1"></i>This Month</button>
+				</div>
+
+				<div class="flex flex-wrap justify-center gap-2">
+					<button class="language-button active px-4 py-2 rounded-md transition-all duration-200"><i class="fas fa-globe mr-1"></i>All</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-python mr-1"></i>Python</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-js mr-1"></i>JavaScript</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-js mr-1"></i>TypeScript</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-java mr-1"></i>Java</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-python mr-1"></i>C++</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-windows mr-1"></i>C#</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-php mr-1"></i>PHP</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-golang mr-1"></i>Go</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fas fa-gem mr-1"></i>Ruby</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-swift mr-1"></i>Swift</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-android mr-1"></i>Kotlin</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fas fa-cog mr-1"></i>Rust</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-vuejs mr-1"></i>Vue</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-react mr-1"></i>React</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-angular mr-1"></i>Angular</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-html5 mr-1"></i>HTML</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-css3-alt mr-1"></i>CSS</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fas fa-terminal mr-1"></i>Shell</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-r-project mr-1"></i>R</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fas fa-database mr-1"></i>SQL</button>
+					<button class="language-button px-4 py-2 rounded-md transition-all duration-200"><i class="fab fa-docker mr-1"></i>Dockerfile</button>
+				</div>
+			</div>
+
+			<div id="trendingList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<!-- Repositories will be added here -->
+			</div>
+		</div>
+
+		<script>
+			document.querySelectorAll('.filter-button, .language-button').forEach(button => {
+				button.classList.add('bg-white', 'hover:bg-gray-50', 'border', 'border-gray-300', 'text-gray-700', 'hover:text-gray-900', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500');
+			});
+
+			document.querySelectorAll('.filter-button.active, .language-button.active').forEach(button => {
+				button.classList.add('bg-blue-600', 'text-white', 'border-blue-600');
+			});
+
+			let displayCount = 50;
+
+			class GitHubTrendingAPI {
+				constructor() {
+					this.baseUrl = 'https://github.com/trending';
+					this.corsProxy = 'https://api.allorigins.win/raw?url=';
+				}
+
+				async getTrending(timeRange = 'daily', language = '') {
+					try {
+						const url = new URL(this.baseUrl);
+						if (timeRange) url.searchParams.set('since', timeRange);
+						if (language && language !== 'all') url.searchParams.set('language', language);
+
+						const response = await fetch(this.corsProxy + encodeURIComponent(url.toString()));
+						if (!response.ok) throw new Error('Network response was not ok');
+
+						const html = await response.text();
+						const parser = new DOMParser();
+						const doc = parser.parseFromString(html, 'text/html');
+						return this._parseRepositories(doc);
+					} catch (error) {
+						console.error('Error fetching data:', error);
+						return [];
+					}
+				}
+
+				_parseRepositories(doc) {
+					const repos = [];
+					const articles = doc.querySelectorAll('article.Box-row');
+
+					articles.forEach(article => {
+						try {
+							const repoData = this._extractRepoData(article);
+							if (repoData) repos.push(repoData);
+						} catch (error) {
+							console.error('Lỗi khi xử lý repository:', error);
+						}
+					});
+
+					return repos;
+				}
+
+				_extractRepoData(article) {
+					// Lấy tên repository
+					const titleElement = article.querySelector('h2 a');
+					if (!titleElement) return null;
+					const name = titleElement.textContent.trim().replace(/\s+/g, '');
+
+					// Lấy mô tả
+					const description = article.querySelector('p')?.textContent.trim() || '';
+
+					// Lấy ngôn ngữ
+					const language = article.querySelector('[itemprop="programmingLanguage"]')?.textContent.trim() || 'Other';
+
+					// Lấy số stars và forks
+					const [stars, forks] = this._extractStats(article);
+
+					// Lấy stars today
+					const todayStars = this._extractTodayStars(article);
+
+					// Thêm xử lý để lấy ngày tạo và cập nhật
+					const dateElements = article.querySelectorAll('relative-time');
+					let createdDate = '',
+						updatedDate = '';
+
+					if (dateElements.length >= 2) {
+						createdDate = dateElements[0]?.getAttribute('datetime') || '';
+						updatedDate = dateElements[1]?.getAttribute('datetime') || '';
+					}
+
+					return {
+						name,
+						description,
+						language,
+						stars,
+						forks,
+						starsToday: todayStars,
+						url: `https://github.com/${name}`,
+						createdAt: createdDate,
+						updatedAt: updatedDate,
+					};
+				}
+
+				_extractStats(article) {
+					const stats = article.querySelectorAll('a.Link--muted');
+					const stars = this._convertNumber(stats[0]?.textContent.trim() || '0');
+					const forks = this._convertNumber(stats[1]?.textContent.trim() || '0');
+					return [stars, forks];
+				}
+
+				_extractTodayStars(article) {
+					const todayStarsElement = article.querySelector('span.d-inline-block.float-sm-right');
+					if (!todayStarsElement) return 0;
+
+					const match = todayStarsElement.textContent.match(/(\d+(?:,\d+)*)\s+stars\s+today/);
+					return match ? this._convertNumber(match[1]) : 0;
+				}
+
+				_convertNumber(numberStr) {
+					try {
+						numberStr = numberStr.toLowerCase().replace(',', '');
+						if (numberStr.includes('k')) {
+							return Math.round(parseFloat(numberStr.replace('k', '')) * 1000);
+						}
+						if (numberStr.includes('m')) {
+							return Math.round(parseFloat(numberStr.replace('m', '')) * 1000000);
+						}
+						return parseInt(numberStr, 10) || 0;
+					} catch {
+						return 0;
+					}
+				}
+			}
+
+			// Khởi tạo API và các biến trạng thái
+			const api = new GitHubTrendingAPI();
+			let currentTimeRange = 'daily';
+			let currentLanguage = 'all';
+
+			// Cập nhật hàm fetchTrendingData
+			async function fetchTrendingData(timeRange = 'daily', language = 'all') {
+				try {
+					return await api.getTrending(timeRange, language === 'all' ? '' : language);
+				} catch (error) {
+					console.error('Lỗi khi tải dữ liệu:', error);
+					return [];
+				}
+			}
+
+			// Xử lý sự kiện click cho các nút filter thời gian
+			document.querySelectorAll('.filter-button').forEach(button => {
+				button.addEventListener('click', async function () {
+					document.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active'));
+					this.classList.add('active');
+
+					if (this.textContent === 'Today') currentTimeRange = 'daily';
+					else if (this.textContent === 'This Week') currentTimeRange = 'weekly';
+					else if (this.textContent === 'This Month') currentTimeRange = 'monthly';
+
+					await updateTrendingList();
+				});
+			});
+
+			// Xử lý sự kiện click cho các nút filter ngôn ngữ
+			document.querySelectorAll('.language-button').forEach(button => {
+				button.addEventListener('click', async function () {
+					document.querySelectorAll('.language-button').forEach(btn => btn.classList.remove('active'));
+					this.classList.add('active');
+
+					currentLanguage = this.textContent === 'All' ? 'all' : this.textContent;
+					await updateTrendingList();
+				});
+			});
+
+			// Cập nhật hàm updateTrendingList
+			async function updateTrendingList() {
+				setLoading(true);
+				const repositories = await fetchTrendingData(currentTimeRange, currentLanguage);
+				setLoading(false);
+				renderTrendingList(repositories);
+			}
+
+			// Tải dữ liệu ban đầu
+			document.addEventListener('DOMContentLoaded', async () => {
+				await updateTrendingList();
+			});
+
+			// Hàm render danh sách repositories
+			function renderTrendingList(repositories) {
+				const trendingList = document.getElementById('trendingList');
+				const repoCountElement = document.querySelector('.repo-count');
+				const limitedRepos = repositories.slice(0, displayCount);
+
+				if (limitedRepos.length === 0) {
+					trendingList.innerHTML = `
+						<div class="col-span-full text-center py-12">
+							<i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
+							<p class="text-gray-600">No repositories found for the selected filters</p>
+						</div>`;
+					return;
+				}
+
+				trendingList.innerHTML = limitedRepos.map(repo => createRepoCard(repo)).join('');
+
+				if (repoCountElement) {
+					repoCountElement.innerHTML = `
+						Display: 
+						<select class="rounded-md border border-gray-300 px-3 py-1.5 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" id="repoCount">
+							<option value="25" ${displayCount === 25 ? 'selected' : ''}>25 repositories</option>
+							<option value="50" ${displayCount === 50 ? 'selected' : ''}>50 repositories</option>
+						</select>
+						<span class="ml-2 text-sm text-gray-500">(${limitedRepos.length}/${repositories.length} repositories)</span>
+					`;
+
+					// Thêm event listener cho select box mới
+					document.getElementById('repoCount').addEventListener('change', function () {
+						displayCount = parseInt(this.value);
+						updateTrendingList();
+					});
+				}
+			}
+
+			// Hàm để lấy màu tương ứng với ngôn ngữ lập trình
+			function getLanguageColor(language) {
+				const colors = {
+					Python: '#3572A5',
+					TypeScript: '#2b7489',
+					JavaScript: '#f1e05a',
+					Java: '#b07219',
+					Go: '#00ADD8',
+					Rust: '#dea584',
+					'C++': '#f34b7d',
+					'C#': '#178600',
+					PHP: '#4F5D95',
+					Ruby: '#701516',
+					Swift: '#ffac45',
+					Kotlin: '#A97BFF',
+					Vue: '#41b883',
+					React: '#61dafb',
+					Angular: '#dd1b16',
+					HTML: '#e34c26',
+					CSS: '#563d7c',
+					Shell: '#89e051',
+					R: '#198CE7',
+					SQL: '#e38c00',
+					Dockerfile: '#384d54',
+					Other: '#gray',
+				};
+				return colors[language] || '#gray';
+			}
+
+			// Thêm hàm format date
+			function formatDate(dateString) {
+				if (!dateString) return '';
+				const date = new Date(dateString);
+				return date.toLocaleDateString('en-US', {
+					year: 'numeric',
+					month: 'short',
+					day: 'numeric',
+				});
+			}
+
+			// Cập nhật loading state
+			function setLoading(isLoading) {
+				const trendingList = document.getElementById('trendingList');
+				if (isLoading) {
+					trendingList.innerHTML = `
+						<div class="col-span-full text-center py-16">
+							<i class="fas fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+							<p class="text-gray-600 animate-pulse">Loading repositories...</p>
+						</div>
+					`;
+				}
+			}
+
+			// Cập nhật createRepoCard với hiệu ứng hover mượt mà hơn
+			function createRepoCard(repo) {
+				const starsToday = repo.starsToday
+					? `<span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full inline-flex items-center">
+						<i class="fas fa-arrow-up text-xs mr-1"></i>${repo.starsToday.toLocaleString()} today
+					</span>`
+					: '';
+
+				const dates = [repo.createdAt ? `<span class="inline-flex items-center"><i class="far fa-calendar-plus mr-1"></i>Created: ${formatDate(repo.createdAt)}</span>` : '', repo.updatedAt ? `<span class="inline-flex items-center"><i class="far fa-calendar-check mr-1"></i>Updated: ${formatDate(repo.updatedAt)}</span>` : ''].filter(Boolean).join('<span class="mx-2">•</span>');
+
+				return `
+					<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all duration-300 repo-card">
+						<a href="${repo.url}" class="text-lg font-semibold text-blue-600 hover:text-blue-800 hover:underline mb-2 flex items-start gap-2" target="_blank" rel="noopener">
+							<i class="far fa-folder mt-1"></i>
+							<span class="flex-1">${repo.name}</span>
+						</a>
+						<p class="text-gray-600 text-sm mb-4 line-clamp-2">
+							${repo.description || 'No description available'}
+						</p>
+						<div class="flex items-center gap-4 text-sm text-gray-600 flex-wrap">
+							<div class="flex items-center gap-1">
+								<span class="language-color" style="background-color: ${getLanguageColor(repo.language)}"></span>
+								${repo.language}
+							</div>
+							<div title="Stars" class="flex items-center">
+								<i class="far fa-star mr-1"></i>${repo.stars.toLocaleString()}
+							</div>
+							<div title="Forks" class="flex items-center">
+								<i class="fas fa-code-branch mr-1"></i>${repo.forks.toLocaleString()}
+							</div>
+							${starsToday}
+						</div>
+						${
+							dates
+								? `
+							<div class="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-500">
+								${dates}
+							</div>
+						`
+								: ''
+						}
+					</div>
+				`;
+			}
+		</script>
+	</body>
+</html>
